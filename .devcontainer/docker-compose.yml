@@ -1,0 +1,37 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=Server=db;Port=3306;Database=bookdb;User=mariadb;Password=mariadb;
+  
+    volumes:
+      - ../..:/workspaces:cached
+
+    # Overrides default command so things don't shut down after the process ends.
+    command: sleep infinity
+
+    # Runs app on the same network as the database container, allows "forwardPorts" in devcontainer.json function.
+    network_mode: service:db
+
+  db:
+    image: mariadb:11.1
+    restart: unless-stopped
+    volumes:
+      - mariadb-volume:/var/lib/mysql:rw
+    environment:
+      MYSQL_ROOT_PASSWORD: 654321
+      MYSQL_DATABASE: bookdb
+      MYSQL_USER: mariadb
+      MYSQL_PASSWORD: mariadb
+
+  adminer:
+    image: adminer
+    restart: unless-stopped
+    ports:
+      - 8080:8080
+  
+volumes:
+  mariadb-volume:
